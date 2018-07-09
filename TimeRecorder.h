@@ -14,12 +14,10 @@ class TimeRecorder{
     std::vector<long> timeRecordsList;
     clock_t start;
 public:
-    TimeRecorder(){read();}
-    void save();
+    TimeRecorder();
     void read();
-    void endRecord();
+    std::string endRecord();
     void display();
-    std::string getUsedTime();
     void startRecord();
     std::string getStringByDuration(long duration);
 };

@@ -25,7 +25,7 @@ public:
 
     void init() {
         int n = rand() % 10;
-        if (n > 8)
+        if (n > 7)
             num = 4;
         else
             num = 2;

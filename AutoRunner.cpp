@@ -4,51 +4,72 @@
 
 #include "AutoRunner.h"
 #include "Board.h"
-#include <math.h>
+#include <algorithm>
 
+using namespace std;
+
+const char dirs[] = {'W', 'A', 'S', 'D'};
 
 char AutoRunner::getCmd(Board theBoard) {
-    this->board = theBoard;
     preBoard = theBoard;
-    Board secBoard;
-    char cmds[] = {'W', 'A', 'S', 'D'};
-    double score = 0;
-    char bestMoveCmd = cmds[0];
-    for (char cmd: cmds) {
-        board.move(cmd);
-        secBoard = board;
-        double theScore = getEvalScore();
-        for (char nextCmd : cmds) {
-            board.generateTile();
-            board.move(nextCmd);
-            theScore = getEvalScore() > theScore ? getEvalScore() : theScore;
-            board = secBoard;
+    char bestMoveCmd = dirs[0];
+    double bestScore = 0;
+    for (char dir : dirs) {
+        Board child = theBoard;
+        child.move(dir);
+        double theScore = search(child, 5, -99999999, 99999999, false);
+        if (theScore > bestScore) {
+            bestScore = theScore;
+            bestMoveCmd = dir;
         }
-        std::cout << cmd  << " " << theScore << std::endl;
-        if (theScore > score) {
-            bestMoveCmd = cmd;
-            score = theScore;
-        }
-        board = preBoard;
     }
     return bestMoveCmd;
 }
 
+double AutoRunner::search(Board currentBoard, int depth, double alpha, double beta, bool player) {
+    if(depth == 0 || currentBoard.emptyTileList.empty())
+        return getEvalScore(currentBoard);
+    if(player) {//玩家
+        double bestVal = -99999999;
+        for(char dir : dirs){
+            Board child = currentBoard;
+            child.move(dir);
+            bestVal = max(search(child,depth-1,alpha,beta, false),bestVal);
+            alpha = max(alpha,bestVal);
+            if(beta <= alpha)
+                break;
 
-double AutoRunner::getEvalScore() {
+        }
+        return bestVal;
+    } else{
+        double bestValue = 99999999;
+        for(int i = 0; i < currentBoard.emptyTileList.size(); i++){
+            Board child = currentBoard;
+            child.emptyTileList[i]->init();
+            bestValue = min(bestValue, search(child,depth-1,alpha,beta,true));
+            beta = min(beta,bestValue);
+            if(beta <= alpha)
+                break;
+        }
+        return bestValue;
+    }
+
+}
+
+double AutoRunner::getEvalScore(Board board) {
     double smoothWeight = 0.3, //平滑性权重系数
-            monoWeight = 1.3, //单调性权重系数
+            monoWeight = 1.3 , //单调性权重系数
             emptyWeight = 2.7, //空格数权重系数
             maxWeight = 1.8,//最大数权重系数
                     mergeWeight = 0.5;
 
 
-    return getSmoothness() * smoothWeight + getMonotonicScore() * monoWeight
-           + getEmptyScore() * emptyWeight + getMaxScore() * maxWeight + getMergeScore() * mergeWeight ;
+    return getSmoothness(board) * smoothWeight + getMonotonicScore(board) * monoWeight
+           + getEmptyScore(board) * emptyWeight + getMaxScore(board) * maxWeight + getMergeScore(board) * mergeWeight ;
 }
 
 
-int AutoRunner::getSmoothness() {
+int AutoRunner::getSmoothness(Board board) {
     int smoothness = 0;
     char dirs[] = {'W', 'A'};
     for (int i = 0; i < Board::boardWidth; i++) {
@@ -63,22 +84,18 @@ int AutoRunner::getSmoothness() {
                         farthestTile = board.getBefore(farthestTile, dir);
                     }
                     farthestTile = board.getBefore(farthestTile, dir);
-                    if (farthestTile != nullptr && !farthestTile->isEmpty()) {
-                        double targetValue = log(farthestTile->getNum()) / log(2);
-                        if (*farthestTile == *tile) smoothness += value;
-                        //smoothness += abs(value - targetValue);
+                    if (farthestTile != nullptr && !farthestTile->isEmpty()&& *farthestTile == *tile) {
+                        smoothness += value;
                     }
-
                 }
             }
         }
     }
 
     return smoothness;
-    //return 0;
 }
 
-double AutoRunner::getMonotonicScore() {
+double AutoRunner::getMonotonicScore(Board board) {
     double totals[] = {0, 0, 0, 0};//A D W S
     for (int i = 0; i < Board::boardWidth; i++) {
         for (int j = 1; j < Board::boardWidth; j++) {
@@ -103,7 +120,6 @@ double AutoRunner::getMonotonicScore() {
         }
 
     }
-
     for (int j = 0; j < Board::boardWidth; j++) {
         for (int i = 1; i < Board::boardWidth; i++) {
             Tile *tile = &board.tiles[i][j];
@@ -131,20 +147,21 @@ double AutoRunner::getMonotonicScore() {
 
 }
 
-double AutoRunner::getEmptyScore() {
+double AutoRunner::getEmptyScore(Board board) {
     board.resetTwoTileLists();
     return board.emptyTileList.size();
 }
 
-double AutoRunner::getMaxScore() {
+double AutoRunner::getMaxScore(Board board) {
     return log(board.getScore()) / log(2);
 }
 
-double AutoRunner::getMergeScore() {
+double AutoRunner::getMergeScore(Board board) {
     int score = board.getMergeScore() - preBoard.getMergeScore();
     if(score == 0)
         return 0;
     return log(score)/log(2);
 }
+
 
 

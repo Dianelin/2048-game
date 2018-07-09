@@ -11,7 +11,7 @@ AutoRunner.h
 E:/Study/4/oop/lab/project/AutoRunner.h
 Board.h
 E:/Study/4/oop/lab/project/Board.h
-math.h
+algorithm
 -
 
 E:/Study/4/oop/lab/project/AutoRunner.h
@@ -94,6 +94,8 @@ iostream
 fstream
 -
 algorithm
+-
+iomanip
 -
 
 E:/Study/4/oop/lab/project/TimeRecorder.h

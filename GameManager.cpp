@@ -10,15 +10,12 @@
 using namespace std;
 
 const string remainderString =   "Please enter Command:\n N --- New Game ; E --- Exit ; V --- View Ranking; C --- Auto run game;";
-GameManager GameManager::gameManager = GameManager();
+
 GameManager::GameManager() {
     init();
 }
 void GameManager::init() {
     cout<< "Welcome to 2048!\n"<< remainderString <<endl;
-}
-GameManager GameManager::getInstance() {
-    return gameManager;
 }
 
 void GameManager::listen() {
@@ -30,17 +27,12 @@ void GameManager::listen() {
             case 'N':
                 timeRecorder.startRecord();
                 game.run();
-                if(game.isWin()){
-                    timeRecorder.endRecord();
-                    timeRecorder.display();
-                }
-                if(game.isOver()){
-
-                }
+                dealGameOver();
                 break;
             case 'C':
                 timeRecorder.startRecord();
                 game.autoRun();
+                dealGameOver();
                 break;
             case 'V':
                 timeRecorder.display();
@@ -52,8 +44,16 @@ void GameManager::listen() {
         cin >> cmd;
         cmd = (char)toupper(cmd);
     }
-    timeRecorder.save();
     cout << "Successfully Exited!" << endl;
+}
+
+void GameManager::dealGameOver() {
+    if(game.isWin()){
+        cout << "Congratulations! You got 2048!  Used Time: " + timeRecorder.endRecord() << endl;
+    }
+    if(game.isOver()){
+        cout << "Game over! Try again? "<<endl;
+    }
 }
 
 

@@ -8,21 +8,18 @@
 #include "Board.h"
 class Game{
     Board board;
-    Board preBoard;
     int erasePropCount;
     int shufflePropCount;
     const int limitTime;
 public:
     Game();
+    friend class AutoRunner;
     void run();
     void autoRun();
-    void listen();
     void dealCmd(char cmd);
     bool isWin();
     bool isOver();
     void paintGUI();
-    void timeCount();
-   // void getCmd();
 
 };
 #endif //PROJECT_GAME_H

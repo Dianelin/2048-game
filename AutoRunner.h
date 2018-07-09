@@ -7,19 +7,16 @@
 
 #include "Board.h"
 class AutoRunner{
-    Board board;
     Board preBoard;
-    double getEvalScore();
-    int getSmoothness();
-    double getEmptyScore();
-    double getMonotonicScore();
-    double getMaxScore();
-    double getMergeScore();
-public:
-    AutoRunner(Board board){
-        this->board = board;
-    };
-    char getCmd(Board board);
+    double getEvalScore(Board board);
+    int getSmoothness(Board board);
+    double getEmptyScore(Board board);
+    double getMonotonicScore(Board board);
+    double getMaxScore(Board board);
+    double getMergeScore(Board board);
+    double search(Board currentBoard,int depth, double alpha, double beta , bool player);
 
+public:
+    char getCmd(Board board);
 };
 #endif //PROJECT_AUTORUNNER_H

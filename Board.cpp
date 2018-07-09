@@ -30,6 +30,13 @@ void Board::init() {
     generateTile();
 }
 
+void Board::generateTile() {
+    auto location = static_cast<int>(rand() % emptyTileList.size());
+    shuffle(emptyTileList.begin(), emptyTileList.end(), default_random_engine(seed));
+    emptyTileList[location]->init();
+    resetTwoTileLists();
+}
+
 void Board::move(char dir) {
     resetMerged();
     switch (dir){
@@ -72,22 +79,67 @@ void Board::move(char dir) {
 
 }
 
-void Board::eraseTile() {
-    shuffle(begin(initedTileList), end(initedTileList), default_random_engine(seed));
-    initedTileList[0]->erase();
-    resetTwoTileLists();
+void Board::moveTile(Tile* tile, char dir) {
+    Tile* theTile = tile;
+    Tile* beforeTile = getBefore(theTile,dir);
+    while (beforeTile != nullptr){
+        if(beforeTile->isEmpty()){
+            *beforeTile = *theTile;
+            theTile->erase();
+        } else if(*beforeTile == *theTile && !beforeTile->isMerged() && !theTile->isMerged()){
+            beforeTile->merge();
+            mergeScore += beforeTile->getNum();
+            theTile->erase();
+        }
+        theTile = beforeTile;
+        beforeTile = getBefore(theTile,dir);
+    }
 }
 
-void Board::generateTile() {
-    //int location = static_cast<int>(rand() % emptyTileList.size());
-    shuffle(emptyTileList.begin(), emptyTileList.end(), default_random_engine(seed));
-    emptyTileList[0]->init();
+
+void Board::eraseTile() {
+    int minNum = 10000;
+    for(Tile* i : initedTileList){
+        minNum = i->getNum() < minNum ? i->getNum() : minNum;
+    }
+    vector<Tile*> minTileList;
+    for(Tile* i : initedTileList){
+        if(i->getNum() == minNum)
+            minTileList.push_back(i);
+    }
+    shuffle(begin(minTileList), end(minTileList), default_random_engine(seed));
+    minTileList[0]->erase();
     resetTwoTileLists();
 }
 
 void Board::shuffleBoard() {
     shuffle(begin(tiles[0]), end(tiles[boardWidth - 1]), default_random_engine(seed));
     resetTwoTileLists();
+}
+
+Tile* Board::getBefore(Tile* tile, char dir) {
+    int x = tile->getX();
+    int y = tile->getY();
+    switch (dir) {
+        case 'W':
+            x--;
+            break;
+        case 'S':
+            x++;
+            break;
+        case 'A':
+            y--;
+            break;
+        case 'D':
+            y++;
+            break;
+        default:
+            x = -1;
+            y = -1;
+    }
+    if(x > -1 && y>-1&& x<boardWidth && y<boardWidth)
+        return &tiles[x][y];
+    return nullptr;
 }
 
 void Board::paint() {
@@ -117,47 +169,6 @@ void Board::paint() {
     cout << "-----------------------------\n";
 }
 
-Tile* Board::getBefore(Tile* tile, char dir) {
-    int x = tile->getX();
-    int y = tile->getY();
-    switch (dir) {
-        case 'W':
-            x--;
-            break;
-        case 'S':
-            x++;
-            break;
-        case 'A':
-            y--;
-            break;
-        case 'D':
-            y++;
-            break;
-        default:
-            x = -1;
-            y = -1;
-    }
-    if(x > -1 && y>-1&& x<boardWidth && y<boardWidth)
-        return &tiles[x][y];
-    return nullptr;
-}
-
-void Board::moveTile(Tile* tile, char dir) {
-    Tile* theTile = tile;
-    Tile* beforeTile = getBefore(theTile,dir);
-    while (beforeTile != nullptr){
-        if(beforeTile->isEmpty()){
-            *beforeTile = *theTile;
-            theTile->erase();
-        } else if(*beforeTile == *theTile && !beforeTile->isMerged() && !theTile->isMerged()){
-            beforeTile->merge();
-            mergeScore += beforeTile->getNum();
-            theTile->erase();
-        }
-        theTile = beforeTile;
-        beforeTile = getBefore(theTile,dir);
-    }
-}
 
 void Board::resetTwoTileLists() {
     emptyTileList.clear();
@@ -202,21 +213,6 @@ bool Board::notMovable() {
     return true;
 }
 
-int Board::getMergeableScore() {
-    int mergableScore = 0;
-    for (int i = 0; i < boardWidth; i++) {
-        for (int j = 0; j < boardWidth; j++) {
-            Tile* tile = &tiles[i][j];
-            char dirs[]= {'W','A','S','D'};
-            for(char dir : dirs){
-                Tile* beforeTile = getBefore(tile,dir);
-                if(beforeTile != nullptr && *beforeTile == *tile)
-                    mergableScore += tile->getNum();
-            }
-        }
-    }
-    return mergableScore;
-}
 
 
 

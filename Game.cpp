@@ -25,14 +25,17 @@ Game::Game():erasePropCount(3),shufflePropCount(3),limitTime(10) {
 void Game::run() {
     cout << "New Game start!"<<endl;
     board = Board();
-    board.paint();
+    paintGUI();
     cout << cmdMessage << endl;
+    cmd = ' 0';
     while (cmd != 'E'){
         cmd = '0';
         thread listenCmdThread(getCmd);
         for(int i = 0 ; i < limitTime;i++){
             if(cmd != '0'){
                 listenCmdThread.join();
+                if(cmd == 'E')
+                    return;
                 dealCmd(cmd);
                 paintGUI();
                 if(isWin() || isOver())
@@ -57,15 +60,21 @@ void Game::run() {
 void Game::autoRun() {
     cout << "New Game auto running!"<<endl;
     board = Board();
-    AutoRunner autoRunner(board);
-
+    AutoRunner autoRunner;
     board.paint();
     while (!isWin() && !isOver()){
         char bestMoveCmd = autoRunner.getCmd(board);
         cout << ">> "<< bestMoveCmd << endl;
-        board.move(bestMoveCmd);
-        board.generateTile();
+        dealCmd(bestMoveCmd);
         paintGUI();
+        if(isOver()&& shufflePropCount > 0){
+            dealCmd('Z');
+            paintGUI();
+        }
+        if(isOver() && erasePropCount > 0){
+            dealCmd('X');
+            paintGUI();
+        }
     }
 
 }
@@ -105,7 +114,6 @@ void Game::dealCmd(char cmd) {
         case 'S':
         case 'A':
         case 'D':
-
             board.move(cmd);
             if(isWin()|| isOver()){
                 return;

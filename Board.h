@@ -30,9 +30,8 @@ public:
     void shuffleBoard();
     void paint();
     int getScore();
-    int getMergeScore(){ return mergeScore;};
     bool notMovable();
-    int getMergeableScore();
+    int getMergeScore(){ return mergeScore;};
 
 };
 #endif //PROJECT_BOARD_H

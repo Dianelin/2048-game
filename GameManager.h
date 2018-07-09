@@ -9,14 +9,12 @@
 #include "TimeRecorder.h"
 #include <string>
 class GameManager{
-    static GameManager gameManager;
-    GameManager();
-   // GameManager(const GameManager&);
     TimeRecorder timeRecorder;
     Game game;
     void init();
+    void dealGameOver();
 public:
-    static GameManager getInstance();
+    GameManager();
     void listen();
 
 };

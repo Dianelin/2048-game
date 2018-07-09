@@ -2,5 +2,6 @@
 #include "GameManager.h"
 
 int main() {
-    GameManager::getInstance().listen();
+    GameManager gameManager;
+    gameManager.listen();
 }
